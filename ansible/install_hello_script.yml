@@ -1,0 +1,9 @@
+# this simple app works as follow: insert "hello" into console and output will be "Hello, word!"
+- name: Playbook to install hello
+  hosts: gcp_vms
+  become: true
+  tasks:  
+  - name: Ansible apt install hello script
+    apt:
+      name: hello
+      state: present

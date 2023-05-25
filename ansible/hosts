@@ -1,0 +1,8 @@
+[gcp_vms]
+35.223.109.237
+
+[gcp_vms:vars]
+ansible_ssh_connection=ssh
+ansible_ssh_user= pulan@softserveinc.com
+ansible_ssh_private_key_file=~/.ssh/defaultssh
+ansible_ssh_pass=""

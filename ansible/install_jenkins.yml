@@ -1,0 +1,46 @@
+- name: Playbook to install Jenkins
+  hosts: gcp_vms
+  become: true
+  
+  tasks:
+
+  - name: update apt
+    ansible.builtin.apt:
+      update_cache: yes
+
+  - name: install java via apt
+    ansible.builtin.apt:
+      name: openjdk-11-jre
+      state: present
+
+  - name: import the GPG key
+    ansible.builtin.shell:
+      cmd: curl -fsSL https://pkg.jenkins.io/debian/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null 
+
+  - name: add jenkins to default repo
+    ansible.builtin.shell:
+      cmd: echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]     https://pkg.jenkins.io/debian binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+  - name: update after repo addition
+    ansible.builtin.apt:
+      update_cache: yes
+
+  - name: install jenkins via apt
+    ansible.builtin.apt:
+      name: jenkins
+      state: present
+
+  - name: ensure jenkins is installed
+    apt: 
+      name: jenkins
+      update_cache: yes
+    become: yes
+
+  - name: start jenkins
+    service:
+      name: jenkins
+      enabled: true
+      state: started
+
+
+

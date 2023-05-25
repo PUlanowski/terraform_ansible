@@ -1,0 +1,5 @@
+plugin: gcp_compute
+projects:
+  - gcp101730-pulanowskisandbox
+auth_kind: serviceaccount
+service_account_file: /home/pulan/mentoring-tf-ansible/ansible/key-ansible.json

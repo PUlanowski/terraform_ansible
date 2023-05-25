@@ -1,0 +1,103 @@
+PROJ_ID: gcp101730-pulanowskisandbox
+
+1/ Cloud Console setup
+ - pip install requests google-auth
+
+2/ Service acct setup [https://cloud.google.com/iam/docs/creating-managing-service-accounts#iam-service-accounts-create-gcloud]
+
+###create
+
+ gcloud iam service-accounts create sa-ansible \
+    --description="Ansible service account" \
+    --display-name="sa-ansible"
+
+###binding iam policies
+
+gcloud projects add-iam-policy-binding gcp101730-pulanowskisandbox \
+    --member="serviceAccount:sa-ansible@gcp101730-pulanowskisandbox.iam.gserviceaccount.com" \
+    --role="roles/compute.admin"
+
+#ROLE_NAME: a role name, such as roles/compute.osLogin
+
+###create service acct key
+
+gcloud iam service-accounts keys create key-ansible \
+    --iam-account=sa-ansible@gcp101730-pulanowskisandbox.iam.gserviceaccount.com
+
+#/home/pulan/mentoring-tf-ansible/ansible/key-ansible - key is automatically downloaded to dir where command launched
+
+3/ Creating ansible.cfg in ansible dir
+
+4/ Creating ansible.gcp.yml in root dir with dynamic inventory enablement
+
+plugin: gcp_compute
+projects:
+  - gcp101730-pulanowskisandbox
+auth_kind: serviceaccount
+service_account_file: /home/pulan/mentoring-tf-ansible/ansible/key-ansible.json
+
+remember of firewall runes for ssh!
+
+# To check what compute engines can be config by ansible use:
+ansible-inventory --list -i ansible.gcp.yml
+
+5/ installing GCP collections with ansible-galaxy
+
+ansible-galaxy collection install google.cloud
+
+6/ Checking machine external IP
+
+gcloud compute addresses list
+
+7/ To install Jenkins
+
+- create cloud storage bbucket with startup script 
+gcloud storage buckets create gs://ansible-startup-script-1234
+
+- create shell startup script with installing jenkins and put into bucket
+
+###to delete ansible resource###
+- maually delete GCE
+- manually delete VPC
+- manually delete Firewall rules
+
+###startup script###
+sudo google_metadata_script_runner startup - rerun startup script
+sudo journalctl -u google-startup-scripts.service - check startup script journal
+
+
+###issues###
+startup script need to be public despite fine granular reader roles #to be investigated which principal should have what role to make it 
+
+######################################################################
+############### Jenkins install after TF resource creation ###########
+######################################################################
+
+1/ create hosts file under /ansible with IP of created hosts
+
+ansible-inventory -i hosts --list  # checking inventory for hosts
+ansible -i hosts all -m ping   # pinging hosts to see if connection is ok
+
+2/ need to alter tf creation script with metadata adding ssh key automatically (metadata ssh-key)
+
+3/ create a ssh key 
+
+ssh-keygen -t rsa -f ~/.ssh/defaultssh -C pulan@softserveinc.com -b 2048
+
+/home/pulan/.ssh/defaultssh.pub
+
+3.5/ issue with host so removing old entry with:
+
+ssh-keygen -R <host>
+
+checking ssh from local machine:
+
+ssh -i ~/.ssh/defaultssh pulan@softserveinc.com@35.224.182.62
+
+4/ now pinging host from ansible level
+
+ansible -i hosts all -m ping
+
+5/ install_hello_script.yml is trial script to install on gcp remote machine, present/absent - works!
+
+6/install_jenkins.yml script works!
